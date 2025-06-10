@@ -3,475 +3,287 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Primsic Puzzle Prompt</title>
-
-  <!-- ========== Embedded CSS ========== -->
+  <title>Slide Words</title>
   <style>
-    /* ===== Basic Page Layout ===== */
     body {
-      font-family: sans-serif;
-      margin: 1rem;
-      line-height: 1.5;
-      background-color: #fafafa;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px; /* Add lots of padding so game "floats" */
+      background: #f0f0f0;
+      box-sizing: border-box;
+    }
+    h1 { margin-bottom: 5px; font-size: 24px; }
+    #intro {
+      max-width: 300px;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #444;
+    }
+    #puzzle {
+      display: grid;
+      grid-template: repeat(5, 60px) / repeat(5, 60px); /* smaller tiles */
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+    .tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #4CAF50;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+    }
+    .tile.empty { background: #ccc; cursor: default; }
+    .tile.selected { background: #2196F3; }
+    .controls { margin-bottom: 10px; }
+    .controls button {
+      padding: 6px 12px;
+      margin: 0 4px;
+      font-size: 14px;
+    }
+    #score {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
       color: #333;
     }
-
-    header h1 {
-      margin-bottom: 0.5rem;
-      font-weight: 600;
+    #timer {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #e53935;
     }
-
-    /* ===== Legend Styling ===== */
-    #legend {
-      margin-bottom: 1rem;
+    #words-found ul {
+      list-style: none;
+      padding: 0;
+      max-height: 150px;
+      overflow-y: auto;
     }
-
-    .legend-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .legend-items span {
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      text-decoration: underline; /* underline provides a secondary cue for color-blind readers */
-      color: white; /* overridden by each POS class below */
-    }
-
-    /* ===== Prompt Container ===== */
-    #prompt-container {
-      border: 1px solid #ccc;
-      background-color: #f9f9f9;
-      padding: 1rem;
-      min-height: 4rem;
-      margin-bottom: 1rem;
-      font-size: 1.1rem;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-
-    /* ===== Buttons ===== */
-    #buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    #buttons button {
-      flex: 1;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    #generate-btn {
-      background-color: #1e88e5; /* blue */
-      color: white;
-    }
-
-    #copy-btn {
-      background-color: #4caf50; /* green */
-      color: white;
-    }
-
-    /* Disabled state */
-    #copy-btn:disabled {
-      background-color: #aaa;
-      cursor: not-allowed;
-    }
-
-    /* "Copied!" message */
-    #copy-msg {
-      font-size: 0.9rem;
-      color: #2e7d32; /* dark green */
-      height: 1.2rem; /* reserve vertical space */
-      visibility: hidden;
-    }
-
-    /* ===== Color-Coding for Each POS ===== */
-    .pos-noun {
-      color: #2E7D32; /* Green */
-      text-decoration: underline;
-    }
-
-    .pos-pronoun {
-      color: #F57C00; /* Orange */
-      text-decoration: underline;
-    }
-
-    .pos-verb {
-      color: #E53935; /* Red */
-      text-decoration: underline;
-    }
-
-    .pos-adjective {
-      color: #FDD835; /* Yellow */
-      text-decoration: underline;
-    }
-
-    .pos-adverb {
-      color: #7B1FA2; /* Purple */
-      text-decoration: underline;
-    }
-
-    .pos-preposition {
-      color: #EC407A; /* Pink */
-      text-decoration: underline;
-    }
-
-    .pos-conjunction {
-      color: #1E88E5; /* Blue */
-      text-decoration: underline;
-    }
-
-    .pos-interjection {
-      color: #4A148C; /* Dark Purple */
-      text-decoration: underline;
-    }
-
-    .pos-article {
-      color: #03A9F4; /* Light Blue */
-      text-decoration: underline;
-    }
-
-    /* ===== Responsive Adjustments ===== */
-    @media (max-width: 600px) {
-      #buttons {
-        flex-direction: column;
-      }
-      #buttons button {
-        width: 100%;
-      }
-      .legend-items {
-        gap: 0.25rem;
-      }
-      .legend-items span {
-        font-size: 0.8rem;
-        padding: 0.25rem;
-      }
+    #words-found li {
+      background: #fff;
+      margin: 3px 0;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
+  <h1>Slide Words</h1>
+  <div id="intro">
+    Slide the tiles to form valid words.<br>
+    Select adjacent tiles to build a word.<br>
+    Submit to score points!<br>
+    You have 3 minutes. Good luck!
+  </div>
+  <div id="timer">Time: 180 sec</div>
+  <div class="controls">
+    <button id="start-timer">Start Timer</button>
+    <button id="restart-game">Restart Game</button>
+  </div>
+  <div id="puzzle"></div>
+  <div class="controls">
+    Current Word: <span id="current-word"></span>
+    <button id="submit-word">Submit Word</button>
+    <button id="clear-selection">Clear Selection</button>
+  </div>
+  <div id="score">Score: 0 pts</div>
+  <div id="words-found">
+    <h3>Words Found:</h3>
+    <ul id="word-list"></ul>
+  </div>
 
-  <header>
-    <h1>Prismic Puzzle Prompt</h1>
-  </header>
-
-  <!-- Legend / Key -->
-  <section id="legend">
-    <p><strong>Instructions:</strong> Click “Generate Puzzle” for some colorful words. Mix and add your own to craft a unique poem.</p>
-    <div class="legend-items">
-      <span class="pos-noun"      aria-label="Noun">Noun</span>
-      <span class="pos-pronoun"   aria-label="Pronoun">Pronoun</span>
-      <span class="pos-verb"      aria-label="Verb">Verb</span>
-      <span class="pos-adjective" aria-label="Adjective">Adjective</span>
-      <span class="pos-adverb"    aria-label="Adverb">Adverb</span>
-      <span class="pos-preposition" aria-label="Preposition">Preposition</span>
-      <span class="pos-conjunction" aria-label="Conjunction">Conjunction</span>
-      <span class="pos-interjection" aria-label="Interjection">Interjection</span>
-      <span class="pos-article"   aria-label="Article">Article</span>
-    </div>
-  </section>
-
-  <!-- Prompt Display Area -->
-  <section id="prompt-area">
-    <div id="prompt-container" aria-live="polite">
-      <!-- Placeholder text before any generation -->
-      <p>Your puzzle prompt will reveal its colors here.</p>
-    </div>
-
-    <!-- Buttons -->
-    <div id="buttons">
-      <button id="generate-btn" aria-label="Generate a new color-coded writing prompt">
-        Generate Puzzle
-      </button>
-      <button id="copy-btn" disabled aria-label="Copy the generated prompt to the clipboard">
-        Copy to Clipboard
-      </button>
-    </div>
-
-    <!-- Transient "Copied!" message -->
-    <div id="copy-msg" aria-live="assertive" role="status"></div>
-  </section>
-
-  <!-- ========== Embedded JavaScript ========== -->
   <script>
-    // =====================
-    //  Word Banks (noun and verb lists expanded to 200 each, all unique)
-    // =====================
-    const wordBanks = {
-      noun: [
-        "ocean","mountain","city","memory","song","dream","canvas","river","poet","journey",
-        "shadow","garden","light","voice","storm","mirror","flame","whisper","secret","book",
-        "chapter","spell","horizon","flute","echo","hearth","window","dawn","dusk","rain","snow",
-        "wind","fire","stone","leaf","flower","petal","root","sky","star","planet","galaxy",
-        "cloud","wave","sand","dust","meadow","valley","hill","desert","island","riverbank",
-        "cave","cliff","tower","bridge","temple","cathedral","palace","campfire","cabin","castle",
-        "hut","path","road","trail","train","ship","breeze","whirlwind","torrent","ember","volcano",
-        "glacier","frost","canyon","peak","beach","harbor","pier","lighthouse","harvest","field",
-        "orchard","vineyard","farm","barn","mill","dune","oasis","delta","marsh","swamp","creek",
-        "spring","grove","wilderness","shack","dome","arena","stadium","auditorium","stage","backdrop",
-        "curtain","spotlight","microphone","camera","projector","screen","gallery","exhibit","museum",
-        "archive","library","scroll","manuscript","letter","diary","journal","map","chart","compass",
-        "hourglass","clock","pendulum","crown","throne","scepter","mask","costume","armor","weapon",
-        "shield","helmet","boot","cloak","robe","tunic","lantern","torch","candle","lamp","fixture",
-        "pedestal","altar","statue","idol","tomb","crypt","grave","bookmark","quill","inkpot","seal",
-        "ring","necklace","bracelet","amulet","pendant","gem","pearl","coin","key","lock","door","wall",
-        "roof","floor","ceiling","stair","elevator","corridor","doorway","windowpane","fence","gate",
-        "pathway","courtyard","balcony","terrace","porch","veranda","deck","patio","ranch","alley",
-        "boulevard","plaza","avenue","lane","highway","skyline","lagoon","reef","tide","current","depth",
-        "abyss","zenith"
-      ],
-      pronoun: [
-        "I","you","he","she","we","they","it","me","him","her","us",
-        "them","my","your","his","her","their","our","its","mine"
-      ],
-      verb: [
-        "run","whisper","glide","shatter","remember","wander","chase","linger","soar","breathe",
-        "shiver","shimmer","echo","dance","rise","float","burn","call","sing","search","hold",
-        "spark","gather","move","touch","await","fall","climb","dive","swim","travel","roam",
-        "sigh","tremble","collapse","unravel","bloom","fade","flicker","glow","murmur","twinkle",
-        "hover","drift","tumble","surge","crash","scatter","crumble","erupt","kneel","ascend",
-        "descend","swirl","ripple","cascade","ignite","blaze","dart","stomp","tiptoe","crawl","leap",
-        "spring","fling","spin","twist","bend","prowl","hunt","hide","reveal","awaken","slumber",
-        "dream","droop","wilt","flourish","perish","survive","endure","collide","converge","diverge",
-        "mumble","gasp","choke","smack","strike","attack","defend","protect","shudder","quake",
-        "quiver","bury","dig","swoop","swoon","bleed","heal","mend","break","fix","build","create",
-        "destroy","paint","write","read","speak","listen","hear","perceive","imagine","believe",
-        "doubt","trust","fear","love","hate","admire","despise","envy","surprise","amaze","stumble",
-        "march","parade","convene","disperse","utter","announce","proclaim","declare","address",
-        "preach","teach","learn","study","ponder","question","answer","respond","react","smile",
-        "frown","laugh","cry","weep","grin","scowl","beam","glare","stare","glance","glimpse",
-        "gaze","peer","blink","wink","nod","shake","startle","arise","alight","plummet","rocket",
-        "burst","sprout","shrivel","stretch","vault","perch","rest","sit","stand","squat","crouch",
-        "lean","peek","scurry","dash","sprint","saunter","stroll","stride","tread","trudge","plod",
-        "meander","gallop","hustle","glisten","sparkle","rustle","splash","roar","creep","slither"
-      ],
-      adjective: [
-        "ancient","golden","silent","lonely","crimson","fragile","endless","gentle",
-        "hidden","vivid","melancholy","brave","timid","hollow","radiant","empty",
-        "broken","wild","soft","stern","restless","hushed","proud","secret","bleak",
-        "serene"
-      ],
-      adverb: [
-        "softly","quietly","boldly","suddenly","gently","wildly","slowly","eagerly",
-        "angrily","silently","gracefully","fiercely","reluctantly","fearlessly","calmly",
-        "brightly","endlessly","harshly","tenderly","warmly","sadly","deeply","humbly",
-        "lightly","steadily"
-      ],
-      preposition: [
-        "above","below","inside","beyond","against","through","within","beneath","along",
-        "across","before","after","around","under","over","toward","near","beside",
-        "among","behind","since","until","without","upon","for","by"
-      ],
-      conjunction: [
-        "and","but","or","so","yet","because","although","while","if","unless",
-        "though","since","after","before","when","where","whether","whereas","once",
-        "provided","until","even","lest","for","nor"
-      ],
-      interjection: [
-        "Wow!","Oh!","Alas!","Hah!","Oops!","Aha!","Oh-no!","Yikes!","Bravo!","Hey!",
-        "Eek!","Whoa!","Yay!","Ugh!","Ha-ha!","Hmm!","Phew!","Yow!","Ahem!","Oy!",
-        "Oh-wow!","Eureka!","Aww!","Aha-ha!"
-      ],
-      article: [
-        "a","an","the","this","that","these","those","my","your","his","her","our",
-        "their","its","some","any","each","every","several","few","many"
-      ]
-    };
+    const puzzleContainer = document.getElementById('puzzle');
+    const currentWordDisplay = document.getElementById('current-word');
+    const submitButton = document.getElementById('submit-word');
+    const clearButton = document.getElementById('clear-selection');
+    const wordListElement = document.getElementById('word-list');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const startTimerButton = document.getElementById('start-timer');
+    const restartGameButton = document.getElementById('restart-game');
 
-    // =====================
-    //  Templates Definition
-    // =====================
-    const templates = [
-      {
-        // Template A: 9 words, simple sentence-style
-        text:
-          "[article] [adjective] [noun] [verb] [adverb] [preposition] [article] [adjective] [noun]"
-      },
-      {
-        // Template B: 10 words, with exclamation + comma + period
-        text:
-          "[interjection]! [pronoun] [verb] [preposition] [noun], [adverb] [verb] [conjunction] [pronoun] [verb]."
-      },
-      {
-        // Template C: Poetry style with an em-dash and line break
-        text:
-          "[noun] [verb] [preposition] [article] [adjective] [noun]—\n[pronoun] [adverb] [verb] [conjunction] [pronoun] [verb] [article] [noun]"
-      },
-      {
-        // Template D: Minimalist—one of each category (9 words)
-        text:
-          "[interjection] [noun] [verb] [adjective] [adverb] [preposition] [conjunction] [pronoun] [article]"
+    let dictionarySet = new Set();
+    async function loadDictionary() {
+      const res = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_dictionary.json');
+      const data = await res.json();
+      dictionarySet = new Set(Object.keys(data));
+      console.log('Dictionary loaded with', dictionarySet.size, 'words');
+    }
+    loadDictionary();
+
+    const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXY'];
+    let selectedIndices = [];
+    let score = 0;
+    let timer = null;
+    let timeLeft = 180; // 3 minutes (180 sec)
+    let gameActive = false;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
-    ];
-
-    // =====================
-    //  Utility: Pick a random element from an array
-    // =====================
-    function pickRandom(arr) {
-      const idx = Math.floor(Math.random() * arr.length);
-      return arr[idx];
     }
 
-    // =====================
-    //  Get a random word from a given POS bank, ensuring uniqueness within the same prompt
-    // =====================
-    function getRandomWord(pos, usedSoFar) {
-      const bank = wordBanks[pos];
-      if (!bank || bank.length === 0) {
-        throw new Error(`No words available in category: ${pos}`);
-      }
+    function initPuzzle() {
+      puzzleContainer.innerHTML = '';
+      selectedIndices = [];
+      updateCurrentWord();
 
-      // Filter out any words already used in this prompt generation
-      const choices = bank.filter((w) => !usedSoFar.includes(w));
-      if (choices.length === 0) {
-        // If we’ve exhausted all unique words, fall back to reusing any word from the original bank
-        return pickRandom(bank);
-      }
+      const shuffled = [...letters];
+      shuffle(shuffled);
+      shuffled.pop(); // create empty
 
-      const word = pickRandom(choices);
-      usedSoFar.push(word);
-      return word;
+      for (let i = 0; i < 25; i++) {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        if (i < shuffled.length) tile.textContent = shuffled[i];
+        else tile.classList.add('empty');
+
+        tile.addEventListener('click', () => onTileClick(i));
+        puzzleContainer.appendChild(tile);
+      }
     }
 
-    // =====================
-    //  Build and render a new prompt when "Generate Prompt" is clicked
-    // =====================
-    function buildPrompt() {
-      const container = document.getElementById("prompt-container");
-      const copyBtn = document.getElementById("copy-btn");
-      const copyMsg = document.getElementById("copy-msg");
+    function getPosition(idx) {
+      return { row: Math.floor(idx / 5), col: idx % 5 };
+    }
 
-      // 1. Choose a random template
-      const templ = pickRandom(templates).text;
+    function isAdjacent(idx1, idx2) {
+      const pos1 = getPosition(idx1);
+      const pos2 = getPosition(idx2);
+      const rowDiff = Math.abs(pos1.row - pos2.row);
+      const colDiff = Math.abs(pos1.col - pos2.col);
+      return rowDiff <= 1 && colDiff <= 1 && !(rowDiff === 0 && colDiff === 0);
+    }
 
-      // 2. Expand "\n" into a standalone marker so we can split on spaces easily
-      const intermediate = templ.replace(/\n/g, " \n ");
-      const tokens = intermediate.split(/\s+/).filter((t) => t.length > 0);
+    function onTileClick(idx) {
+      const tiles = Array.from(puzzleContainer.children);
+      const emptyIdx = tiles.findIndex(t => t.classList.contains('empty'));
+      const clickedPos = getPosition(idx);
+      const emptyPos = getPosition(emptyIdx);
+      const isMoveAdjacent = (clickedPos.row === emptyPos.row && Math.abs(clickedPos.col - emptyPos.col) === 1)
+                           || (clickedPos.col === emptyPos.col && Math.abs(clickedPos.row - emptyPos.row) === 1);
 
-      // 3. Iterate through tokens, build HTML pieces
-      const usedWords = [];
-      let htmlPieces = [];
+      if (gameActive && isMoveAdjacent && selectedIndices.length === 0) {
+        // Move tile (ONLY if no selection in progress)
+        tiles[emptyIdx].textContent = tiles[idx].textContent;
+        tiles[emptyIdx].classList.replace('empty', 'tile');
+        tiles[idx].textContent = '';
+        tiles[idx].classList.replace('tile', 'empty');
+        return;
+      }
 
-      tokens.forEach((token) => {
-        if (token === "\n") {
-          // Line break
-          htmlPieces.push("<br>");
-          return;
-        }
-
-        // Match bracketed slot plus optional punctuation
-        // e.g. "[noun],", "[interjection]!", "[verb].", "[adjective]—"
-        const slotMatch = token.match(/^\[([a-z]+)\]([,\.!—]*)$/i);
-
-        if (slotMatch) {
-          const pos = slotMatch[1].toLowerCase();
-          const punctuation = slotMatch[2] || "";
-
-          let word;
-          try {
-            word = getRandomWord(pos, usedWords);
-          } catch (err) {
-            // If a bank is empty, show an error and abort
-            container.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
-            copyBtn.disabled = true;
-            return;
+      // Word selection logic — allow selecting non-empty tiles even if adjacent to empty
+      if (gameActive && !tiles[idx].classList.contains('empty') && !selectedIndices.includes(idx)) {
+        if (selectedIndices.length === 0) {
+          selectedIndices.push(idx);
+          tiles[idx].classList.add('selected');
+          updateCurrentWord();
+        } else {
+          const lastIdx = selectedIndices[selectedIndices.length - 1];
+          if (isAdjacent(lastIdx, idx)) {
+            selectedIndices.push(idx);
+            tiles[idx].classList.add('selected');
+            updateCurrentWord();
+          } else {
+            alert('You must select an adjacent tile!');
           }
-
-          // Wrap the chosen word in a <span> with its POS class and a title for accessibility
-          const escaped = word
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-          const spanHTML = `<span class="pos-${pos}" title="${pos}">${escaped}</span>`;
-
-          // Combine span + punctuation
-          htmlPieces.push(spanHTML + punctuation);
-        } else {
-          // If it doesn’t match the bracket-pattern, treat as fixed text or punctuation
-          htmlPieces.push(token);
-        }
-      });
-
-      // 4. Join htmlPieces with spaces—except don’t add spaces around <br> or punctuation
-      let resultHTML = "";
-      for (let i = 0; i < htmlPieces.length; i++) {
-        const piece = htmlPieces[i];
-        if (piece === "<br>") {
-          resultHTML += "<br>";
-          continue;
-        }
-
-        // If the piece ends with punctuation (comma, period, exclamation, em dash), keep it without a trailing space
-        if (/[,\.!—]$/.test(piece)) {
-          resultHTML += piece;
-        } else {
-          // Otherwise, add a space after it (unless the next piece is a line break)
-          resultHTML += piece;
-        }
-
-        // Look ahead: if next piece is <br>, skip adding an extra space
-        if (i + 1 < htmlPieces.length && htmlPieces[i + 1] !== "<br>") {
-          resultHTML += " ";
         }
       }
-
-      // 5. Inject into the container
-      container.innerHTML = resultHTML.trim();
-
-      // 6. Enable the "Copy" button
-      copyBtn.disabled = false;
-      copyMsg.style.visibility = "hidden";
     }
 
-    // =====================
-    //  Copy to Clipboard Handler
-    // =====================
-    function copyPromptToClipboard() {
-      const container = document.getElementById("prompt-container");
-      const copyMsg = document.getElementById("copy-msg");
-
-      // Use textContent so we get plain text (with line breaks) rather than HTML tags
-      const text = container.textContent.trim();
-      if (!text) return;
-
-      navigator.clipboard
-        .writeText(text)
-        .then(() => {
-          copyMsg.textContent = "Copied!";
-          copyMsg.style.visibility = "visible";
-
-          // Hide the message after 1.5 seconds
-          setTimeout(() => {
-            copyMsg.style.visibility = "hidden";
-          }, 1500);
-        })
-        .catch(() => {
-          copyMsg.textContent = "Failed to copy.";
-          copyMsg.style.visibility = "visible";
-
-          setTimeout(() => {
-            copyMsg.style.visibility = "hidden";
-          }, 1500);
-        });
+    function updateCurrentWord() {
+      const tiles = Array.from(puzzleContainer.children);
+      const word = selectedIndices.map(i => tiles[i].textContent).join('');
+      currentWordDisplay.textContent = word;
     }
 
-    // =====================
-    //  Event Listeners
-    // =====================
-    document.addEventListener("DOMContentLoaded", () => {
-      const genBtn = document.getElementById("generate-btn");
-      const copyBtn = document.getElementById("copy-btn");
+    function clearSelection() {
+      const tiles = Array.from(puzzleContainer.children);
+      selectedIndices.forEach(i => tiles[i].classList.remove('selected'));
+      selectedIndices = [];
+      updateCurrentWord();
+    }
 
-      genBtn.addEventListener("click", buildPrompt);
-      copyBtn.addEventListener("click", copyPromptToClipboard);
-    });
+    function calculateScore(word) {
+      let basePoints = word.length;
+      let bonus = (word.length >= 5) ? 2 : 0;
+      return basePoints + bonus;
+    }
+
+    function submitWord() {
+      if (!gameActive) return;
+
+      const tiles = Array.from(puzzleContainer.children);
+      const word = selectedIndices.map(i => tiles[i].textContent).join('').toLowerCase();
+      if (!word) return;
+
+      if (dictionarySet.has(word)) {
+        const li = document.createElement('li');
+        const wordScore = calculateScore(word);
+        li.textContent = `${word.toUpperCase()} (+${wordScore} pts)`;
+        wordListElement.appendChild(li);
+        // Update score
+        score += wordScore;
+        scoreDisplay.textContent = `Score: ${score} pts`;
+      } else {
+        alert(`"${word}" is not in the dictionary!`);
+      }
+      clearSelection();
+    }
+
+    function startTimer() {
+      if (gameActive) return; // don't double start
+
+      gameActive = true;
+      timeLeft = 180;
+      timerDisplay.textContent = `Time: ${timeLeft} sec`;
+
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time: ${timeLeft} sec`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          gameActive = false;
+          timerDisplay.textContent = 'Time\'s up!';
+          submitButton.disabled = true;
+          alert('Time\'s up! Final score: ' + score + ' pts');
+        }
+      }, 1000);
+
+      submitButton.disabled = false;
+    }
+
+    function restartGame() {
+      clearInterval(timer);
+      gameActive = false;
+      timeLeft = 180;
+      timerDisplay.textContent = `Time: ${timeLeft} sec`;
+      score = 0;
+      scoreDisplay.textContent = `Score: 0 pts`;
+      wordListElement.innerHTML = '';
+      clearSelection();
+      initPuzzle();
+      submitButton.disabled = false;
+    }
+
+    submitButton.addEventListener('click', submitWord);
+    clearButton.addEventListener('click', clearSelection);
+    startTimerButton.addEventListener('click', startTimer);
+    restartGameButton.addEventListener('click', restartGame);
+
+    initPuzzle();
   </script>
 </body>
 </html>
